@@ -1,11 +1,6 @@
-</> YAML
-
 name: bilibili-bv
+
 on:
-
-
-
-
   workflow_dispatch:
 
 jobs:
