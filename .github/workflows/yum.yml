@@ -1,0 +1,109 @@
+name: bilibili-bv
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 安装工具
+        run: |
+          pip install yt-dlp
+          sudo apt update
+          sudo apt install -y ffmpeg
+
+      - name: 写入BV列表
+        run: |
+          cat > list.txt << 'EOF'
+          BV187Msz4Ebg
+          BV1d4411N7zD
+          BV1du8QzAE66
+          BV1Ek4y1r7Rg
+          BV1vk4y1H7Eu
+          BV1SN4y1u7sV
+          BV1Wx411D7Ki
+          BV1hGuQzBEjn
+          BV1ZvCHY6E3T
+          BV1uQDaBvEq1
+          BV1XB4y187sa
+          BV1u4NMzvEYD
+          BV155r4YCEuV
+          BV1J1x4zoE28
+          BV1mY4y1k7mD
+          BV16ttQzAE1F
+          BV1ux411e7RF
+          BV1x4MsznENd
+          BV1gL4y137no
+          BV11J411t72S
+          BV19i4y1a7ta
+          BV16g4y1T7Nh
+          BV1WT41117ug
+          BV1wi4y1S7h8
+          BV1fWqaB2EGh
+          BV1rb9EB9EyT
+          BV1Um4y1i7yV
+          BV1Lp4y1Z7AQ
+          BV1M7LwzCEU9
+          BV1HWx7erEnV
+          BV1pdQ2YkEm4
+          BV1nGrdYqEow
+          BV1Ks411h73N
+          BV1ns411M7Fz
+          BV194BpB2E8a
+          BV14z4y1S7s2
+          BV1ePQ8YVEgx
+          BV1L8411v7v5
+          BV1Ms4y1M7nE
+          BV1DC4y1572K
+          BV1U5411R7ps
+          BV1pF411s7X6
+          BV1jaf5YsEqy
+          BV1KL4y1b7X9
+          BV1bX4y1i7Uf
+          BV1Zq4y1Q7Ka
+          BV1T3JnzNEpp
+          BV1ryHpzTEnn
+          BV194CdBWECr
+          BV1bo4y1A7S9
+          BV1zs411b7La
+          BV12b4y1S7g6
+          BV1E64y1U7hE
+          BV1DzeEzMEEM
+          BV1sMcdzEEVb
+          BV1pt7AzkE9H
+          BV1T7411c7Z7
+          BV19A6ZYtECF
+          EOF
+
+      - name: 下载音频+字幕
+        run: |
+          while read bv; do
+            yt-dlp "https://www.bilibili.com/video/$bv" \
+            -f bestaudio \
+            --extract-audio \
+            --audio-format mp3 \
+            --write-subs \
+            --write-auto-subs \
+            --sub-lang zh-CN \
+            --convert-subs srt || true
+          done < list.txt
+
+      - name: 生成黑屏视频（字幕居中+放大）
+        run: |
+          for f in *.mp3; do
+            sub="${f%.mp3}.zh-CN.srt"
+            if [ -f "$sub" ]; then
+              ffmpeg -f lavfi -i color=c=black:s=1280x720 \
+              -i "$f" -shortest \
+              -vf "subtitles=$sub:force_style='Fontsize=36,Alignment=10,Outline=3'" \
+              -c:v libx264 -c:a aac -b:a 192k \
+              "${f%.mp3}.mp4"
+            fi
+          done
+
+      - name: 上传结果
+        uses: actions/upload-artifact@v4
+        with:
+          name: result
+          path: "*.mp4"
