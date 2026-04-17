@@ -1,4 +1,4 @@
-name: bilibili-test
+name: bilibili-test-one
 
 on:
   workflow_dispatch:
@@ -13,25 +13,21 @@ jobs:
           sudo apt update
           sudo apt install -y ffmpeg
 
-      - name: write list
+      - name: write cookies
         run: |
-          cat > list.txt << 'EOF'
-          BV187Msz4Ebg
-          BV1d4411N7zD
-          EOF
+          echo "# Netscape HTTP Cookie File" > cookies.txt
+          echo ".bilibili.com TRUE / FALSE 0 SESSDATA 42448da2%2C1791886123%2C80653%2A42CjASYgzz3FLdEG9l4DJLxFq4TECOCGWdFYLDheY0cV53lN7u36G5299i0Zht32cRe3MSVkE5dnhGTUJwUTJacXBMMW5yYnc4LW8tNWQ5bTQ1dVIzdDJIQ0psLWV4OVJqNlJkNHVDSEVfUTlmZTYyVXRPUzk3eU1WMlRLb0dSaFZ2UllUbC1Bbk13IIEC" >> cookies.txt
 
       - name: download
         run: |
-          while read bv; do
-            echo "Processing $bv"
-            yt-dlp "https://www.bilibili.com/video/$bv" \
-            -f bestaudio \
-            --extract-audio \
-            --audio-format mp3 \
-            --write-subs \
-            --write-auto-subs \
-            --convert-subs srt || true
-          done < list.txt
+          yt-dlp "https://www.bilibili.com/video/BV187Msz4Ebg" \
+          -f bestaudio \
+          --extract-audio \
+          --audio-format mp3 \
+          --write-subs \
+          --write-auto-subs \
+          --convert-subs srt \
+          --cookies cookies.txt
 
       - name: make video
         run: |
@@ -45,14 +41,14 @@ jobs:
               -c:v libx264 -c:a aac -b:a 192k \
               "${f%.mp3}.mp4"
             else
-              echo "No subtitle for $f"
+              echo "No subtitle found"
             fi
           done
 
       - name: upload
         uses: actions/upload-artifact@v4
         with:
-          name: result-test
+          name: result-one
           path: |
             *.mp4
             *.mp3
