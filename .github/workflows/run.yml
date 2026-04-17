@@ -1,10 +1,10 @@
 </> YAML
 
-
-on:
-  push:
-
 name: bilibili-bv
+on:
+
+
+
 
   workflow_dispatch:
 
